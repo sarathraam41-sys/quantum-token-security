@@ -1,0 +1,792 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta
+        name="viewport"
+        content="width=device-width, initial-scale=1.0"
+    >
+
+    <title>QuantumBank Dashboard</title>
+
+    <link
+        rel="stylesheet"
+        href="{{ url_for('static', filename='style.css') }}"
+    >
+
+    <script
+        src="https://cdn.socket.io/4.7.5/socket.io.min.js"
+    ></script>
+</head>
+
+<body>
+
+    <nav class="navbar">
+
+        <div class="brand">
+            <div class="brand-icon">Q</div>
+
+            <div>
+                <h1>QuantumBank</h1>
+                <p>Security Dashboard</p>
+            </div>
+        </div>
+
+        <div class="nav-actions">
+            <span id="userUpi"></span>
+
+            <button
+                class="secondary-button"
+                onclick="logout()"
+            >
+                Logout
+            </button>
+        </div>
+
+    </nav>
+
+
+    <main class="dashboard-container">
+
+        <section class="hero-section">
+
+            <div>
+                <p class="eyebrow">
+                    QUANTUM SECURITY WALLET
+                </p>
+
+                <h2>
+                    Welcome to your
+                    secure wallet
+                </h2>
+
+                <p class="subtitle">
+                    Your transactions are protected
+                    using a simulated quantum-token
+                    verification mechanism.
+                </p>
+            </div>
+
+            <div
+                id="securityBadge"
+                class="security-badge"
+            >
+                Checking security...
+            </div>
+
+        </section>
+
+
+        <section class="stats-grid">
+
+            <div class="stat-card">
+
+                <span class="stat-label">
+                    Available Balance
+                </span>
+
+                <strong id="balance">
+                    ₹0
+                </strong>
+
+            </div>
+
+
+            <div class="stat-card">
+
+                <span class="stat-label">
+                    Token Size
+                </span>
+
+                <strong>
+                    20 Qubits
+                </strong>
+
+            </div>
+
+
+            <div class="stat-card">
+
+                <span class="stat-label">
+                    Trap Ratio
+                </span>
+
+                <strong>
+                    30%
+                </strong>
+
+            </div>
+
+        </section>
+
+
+        <section class="dashboard-grid">
+
+            <div class="panel">
+
+                <div class="panel-header">
+
+                    <div>
+                        <p class="eyebrow">
+                            TRANSACTION
+                        </p>
+
+                        <h3>
+                            Transfer Funds
+                        </h3>
+                    </div>
+
+                </div>
+
+
+                <form id="transferForm">
+
+                    <label for="receiver">
+                        Receiver UPI
+                    </label>
+
+                    <input
+                        type="text"
+                        id="receiver"
+                        placeholder="receiver@upi"
+                        required
+                    >
+
+
+                    <label for="amount">
+                        Amount
+                    </label>
+
+                    <input
+                        type="number"
+                        id="amount"
+                        min="1"
+                        placeholder="1000"
+                        required
+                    >
+
+
+                    <button
+                        type="submit"
+                        class="primary-button"
+                    >
+                        Transfer Funds
+                    </button>
+
+                </form>
+
+
+                <p
+                    id="transferMessage"
+                    class="message"
+                ></p>
+
+            </div>
+
+
+            <div class="panel">
+
+                <div class="panel-header">
+
+                    <div>
+                        <p class="eyebrow">
+                            QUANTUM VERIFICATION
+                        </p>
+
+                        <h3>
+                            Token Security
+                        </h3>
+                    </div>
+
+                </div>
+
+
+                <p class="panel-description">
+                    Run an honest verification or
+                    simulate a malicious disturbance
+                    against the quantum token.
+                </p>
+
+
+                <div class="button-row">
+
+                    <button
+                        class="secondary-button"
+                        onclick="verifyToken(false)"
+                    >
+                        Honest Verification
+                    </button>
+
+
+                    <button
+                        class="danger-button"
+                        onclick="verifyToken(true)"
+                    >
+                        Simulate Attack
+                    </button>
+
+                </div>
+
+
+                <pre
+                    id="verificationResult"
+                    class="result-box"
+                >No verification performed.</pre>
+
+            </div>
+
+        </section>
+
+
+        <section class="panel">
+
+            <div class="panel-header">
+
+                <div>
+                    <p class="eyebrow">
+                        ACTIVITY
+                    </p>
+
+                    <h3>
+                        Recent Transactions
+                    </h3>
+                </div>
+
+                <button
+                    class="secondary-button"
+                    onclick="loadTransactions()"
+                >
+                    Refresh
+                </button>
+
+            </div>
+
+
+            <div
+                id="transactions"
+                class="transaction-list"
+            >
+                Loading transactions...
+            </div>
+
+        </section>
+
+
+        <section
+            id="collapseAlert"
+            class="alert-card hidden"
+        >
+
+            <div>
+
+                <p class="eyebrow">
+                    SECURITY EVENT
+                </p>
+
+                <h3>
+                    Quantum Token Invalidated
+                </h3>
+
+                <p>
+                    The current token has been marked
+                    as collapsed and should be replaced.
+                </p>
+
+            </div>
+
+
+            <button
+                class="primary-button"
+                onclick="reissueToken()"
+            >
+                Reissue Token
+            </button>
+
+        </section>
+
+    </main>
+
+
+    <script>
+
+        const upi =
+            sessionStorage.getItem("upi");
+
+
+        if (!upi) {
+            window.location.href = "/";
+        }
+
+
+        document.getElementById(
+            "userUpi"
+        ).textContent = upi;
+
+
+        async function loadBalance() {
+
+            try {
+
+                const response =
+                    await fetch(
+                        "/balance",
+                        {
+                            method: "POST",
+
+                            headers: {
+                                "Content-Type":
+                                    "application/json"
+                            },
+
+                            body: JSON.stringify({
+                                upi: upi
+                            })
+                        }
+                    );
+
+
+                const data =
+                    await response.json();
+
+
+                if (!response.ok) {
+                    throw new Error(
+                        data.error ||
+                        "Unable to load balance."
+                    );
+                }
+
+
+                document.getElementById(
+                    "balance"
+                ).textContent =
+                    "₹" +
+                    Number(
+                        data.balance
+                    ).toLocaleString("en-IN");
+
+
+                updateSecurityStatus(
+                    data.collapsed
+                );
+
+            } catch (error) {
+
+                console.error(error);
+
+            }
+
+        }
+
+
+        function updateSecurityStatus(
+            collapsed
+        ) {
+
+            const badge =
+                document.getElementById(
+                    "securityBadge"
+                );
+
+
+            const alert =
+                document.getElementById(
+                    "collapseAlert"
+                );
+
+
+            if (collapsed) {
+
+                badge.textContent =
+                    "● Token Invalidated";
+
+                badge.className =
+                    "security-badge danger";
+
+                alert.classList.remove(
+                    "hidden"
+                );
+
+            } else {
+
+                badge.textContent =
+                    "● Token Secure";
+
+                badge.className =
+                    "security-badge secure";
+
+                alert.classList.add(
+                    "hidden"
+                );
+
+            }
+
+        }
+
+
+        async function verifyToken(
+            malicious
+        ) {
+
+            const resultBox =
+                document.getElementById(
+                    "verificationResult"
+                );
+
+
+            resultBox.textContent =
+                "Running quantum verification...";
+
+
+            try {
+
+                const response =
+                    await fetch(
+                        "/verify_token",
+                        {
+                            method: "POST",
+
+                            headers: {
+                                "Content-Type":
+                                    "application/json"
+                            },
+
+                            body: JSON.stringify({
+                                upi: upi,
+                                malicious: malicious
+                            })
+                        }
+                    );
+
+
+                const data =
+                    await response.json();
+
+
+                if (!response.ok) {
+                    throw new Error(
+                        data.error ||
+                        "Verification failed."
+                    );
+                }
+
+
+                resultBox.textContent =
+                    JSON.stringify(
+                        data,
+                        null,
+                        2
+                    );
+
+            } catch (error) {
+
+                resultBox.textContent =
+                    error.message;
+
+            }
+
+        }
+
+
+        document
+            .getElementById("transferForm")
+            .addEventListener(
+                "submit",
+                async function(event) {
+
+                    event.preventDefault();
+
+
+                    const receiver =
+                        document
+                            .getElementById(
+                                "receiver"
+                            )
+                            .value
+                            .trim();
+
+
+                    const amount =
+                        Number(
+                            document
+                                .getElementById(
+                                    "amount"
+                                )
+                                .value
+                        );
+
+
+                    const message =
+                        document.getElementById(
+                            "transferMessage"
+                        );
+
+
+                    message.textContent =
+                        "Processing transfer...";
+
+
+                    try {
+
+                        const response =
+                            await fetch(
+                                "/transfer",
+                                {
+                                    method: "POST",
+
+                                    headers: {
+                                        "Content-Type":
+                                            "application/json"
+                                    },
+
+                                    body:
+                                        JSON.stringify({
+                                            sender: upi,
+                                            receiver:
+                                                receiver,
+                                            amount:
+                                                amount
+                                        })
+                                }
+                            );
+
+
+                        const data =
+                            await response.json();
+
+
+                        if (!response.ok) {
+                            throw new Error(
+                                data.error ||
+                                "Transfer failed."
+                            );
+                        }
+
+
+                        message.textContent =
+                            "Transfer successful.";
+
+
+                        document
+                            .getElementById(
+                                "transferForm"
+                            )
+                            .reset();
+
+
+                        await loadBalance();
+
+                        await loadTransactions();
+
+                    } catch (error) {
+
+                        message.textContent =
+                            error.message;
+
+                    }
+
+                }
+            );
+
+
+        async function loadTransactions() {
+
+            const container =
+                document.getElementById(
+                    "transactions"
+                );
+
+
+            try {
+
+                const response =
+                    await fetch(
+                        "/admin_logs"
+                    );
+
+
+                const data =
+                    await response.json();
+
+
+                if (!data.length) {
+
+                    container.innerHTML =
+                        "<p>No transactions yet.</p>";
+
+                    return;
+
+                }
+
+
+                container.innerHTML =
+                    data
+                        .map(
+                            transaction => `
+                                <div class="transaction-item">
+                                    <div>
+                                        <strong>
+                                            ${escapeHtml(
+                                                transaction.from
+                                            )}
+                                        </strong>
+
+                                        <span>
+                                            →
+                                        </span>
+
+                                        <strong>
+                                            ${escapeHtml(
+                                                transaction.to
+                                            )}
+                                        </strong>
+
+                                        <small>
+                                            ${escapeHtml(
+                                                transaction.created_at
+                                            )}
+                                        </small>
+                                    </div>
+
+                                    <strong>
+                                        ₹${Number(
+                                            transaction.amount
+                                        ).toLocaleString(
+                                            "en-IN"
+                                        )}
+                                    </strong>
+                                </div>
+                            `
+                        )
+                        .join("");
+
+            } catch (error) {
+
+                container.textContent =
+                    "Unable to load transactions.";
+
+            }
+
+        }
+
+
+        async function reissueToken() {
+
+            try {
+
+                const response =
+                    await fetch(
+                        "/reissue_token",
+                        {
+                            method: "POST",
+
+                            headers: {
+                                "Content-Type":
+                                    "application/json"
+                            },
+
+                            body: JSON.stringify({
+                                upi: upi
+                            })
+                        }
+                    );
+
+
+                const data =
+                    await response.json();
+
+
+                if (!response.ok) {
+                    throw new Error(
+                        data.error ||
+                        "Unable to reissue token."
+                    );
+                }
+
+
+                await loadBalance();
+
+                alert(
+                    "A new quantum token has been issued."
+                );
+
+            } catch (error) {
+
+                alert(error.message);
+
+            }
+
+        }
+
+
+        function logout() {
+
+            sessionStorage.removeItem(
+                "upi"
+            );
+
+            window.location.href = "/";
+
+        }
+
+
+        function escapeHtml(
+            value
+        ) {
+
+            return String(value)
+                .replaceAll("&", "&amp;")
+                .replaceAll("<", "&lt;")
+                .replaceAll(">", "&gt;")
+                .replaceAll('"', "&quot;")
+                .replaceAll("'", "&#039;");
+
+        }
+
+
+        const socket =
+            io();
+
+
+        socket.on(
+            "tx",
+            function(transaction) {
+
+                loadBalance();
+                loadTransactions();
+
+            }
+        );
+
+
+        socket.on(
+            "collapse_token",
+            function(event) {
+
+                if (event.upi === upi) {
+                    updateSecurityStatus(true);
+                }
+
+            }
+        );
+
+
+        socket.on(
+            "new_token",
+            function(event) {
+
+                if (event.upi === upi) {
+                    loadBalance();
+                }
+
+            }
+        );
+
+
+        loadBalance();
+        loadTransactions();
+
+    </script>
+
+</body>
+</html>

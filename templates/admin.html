@@ -1,0 +1,736 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+
+    <meta
+        name="viewport"
+        content="width=device-width, initial-scale=1.0"
+    >
+
+    <title>QuantumBank Admin Console</title>
+
+    <link
+        rel="stylesheet"
+        href="{{ url_for('static', filename='style.css') }}"
+    >
+
+    <script
+        src="https://cdn.socket.io/4.7.5/socket.io.min.js"
+    ></script>
+</head>
+
+<body>
+
+    <nav class="navbar">
+
+        <div class="brand">
+
+            <div class="brand-icon">
+                Q
+            </div>
+
+            <div>
+                <h1>QuantumBank</h1>
+                <p>Security Administration</p>
+            </div>
+
+        </div>
+
+        <div class="nav-actions">
+
+            <span class="admin-label">
+                ADMIN CONSOLE
+            </span>
+
+            <a
+                href="/"
+                class="secondary-button"
+            >
+                User Login
+            </a>
+
+        </div>
+
+    </nav>
+
+
+    <main class="dashboard-container">
+
+        <section class="hero-section">
+
+            <div>
+
+                <p class="eyebrow">
+                    SECURITY OPERATIONS
+                </p>
+
+                <h2>
+                    Quantum Security
+                    Control Center
+                </h2>
+
+                <p class="subtitle">
+                    Monitor transactions, inspect token
+                    states and simulate security events.
+                </p>
+
+            </div>
+
+
+            <div class="security-badge secure">
+                ● SYSTEM ONLINE
+            </div>
+
+        </section>
+
+
+        <section class="stats-grid">
+
+            <div class="stat-card">
+
+                <span class="stat-label">
+                    Transactions
+                </span>
+
+                <strong id="transactionCount">
+                    0
+                </strong>
+
+            </div>
+
+
+            <div class="stat-card">
+
+                <span class="stat-label">
+                    Token Size
+                </span>
+
+                <strong>
+                    20 Qubits
+                </strong>
+
+            </div>
+
+
+            <div class="stat-card">
+
+                <span class="stat-label">
+                    Trap Ratio
+                </span>
+
+                <strong>
+                    30%
+                </strong>
+
+            </div>
+
+        </section>
+
+
+        <section class="dashboard-grid">
+
+            <div class="panel">
+
+                <div class="panel-header">
+
+                    <div>
+
+                        <p class="eyebrow">
+                            TOKEN CONTROL
+                        </p>
+
+                        <h3>
+                            Security Simulation
+                        </h3>
+
+                    </div>
+
+                </div>
+
+
+                <p class="panel-description">
+                    Enter a wallet identifier to simulate
+                    an application-level token compromise.
+                </p>
+
+
+                <label for="targetUpi">
+                    Target UPI
+                </label>
+
+                <input
+                    type="text"
+                    id="targetUpi"
+                    placeholder="user@upi"
+                >
+
+
+                <div class="button-row">
+
+                    <button
+                        class="danger-button"
+                        onclick="collapseToken()"
+                    >
+                        Simulate Token Collapse
+                    </button>
+
+                    <button
+                        class="secondary-button"
+                        onclick="verifyTarget()"
+                    >
+                        Verify Token
+                    </button>
+
+                </div>
+
+
+                <pre
+                    id="securityResult"
+                    class="result-box"
+                >No security operation performed.</pre>
+
+            </div>
+
+
+            <div class="panel">
+
+                <div class="panel-header">
+
+                    <div>
+
+                        <p class="eyebrow">
+                            REISSUE
+                        </p>
+
+                        <h3>
+                            Token Recovery
+                        </h3>
+
+                    </div>
+
+                </div>
+
+
+                <p class="panel-description">
+                    Issue a fresh quantum token after
+                    a token has been invalidated.
+                </p>
+
+
+                <button
+                    class="primary-button full-width"
+                    onclick="reissueToken()"
+                >
+                    Issue Replacement Token
+                </button>
+
+
+                <p
+                    id="reissueMessage"
+                    class="message"
+                ></p>
+
+            </div>
+
+        </section>
+
+
+        <section class="panel">
+
+            <div class="panel-header">
+
+                <div>
+
+                    <p class="eyebrow">
+                        TRANSACTION MONITOR
+                    </p>
+
+                    <h3>
+                        Transaction Log
+                    </h3>
+
+                </div>
+
+
+                <button
+                    class="secondary-button"
+                    onclick="loadLogs()"
+                >
+                    Refresh Logs
+                </button>
+
+            </div>
+
+
+            <div
+                id="transactionLog"
+                class="transaction-list"
+            >
+                Loading logs...
+            </div>
+
+        </section>
+
+
+        <section class="panel information-panel">
+
+            <p class="eyebrow">
+                SECURITY MODEL
+            </p>
+
+            <h3>
+                How the demonstration works
+            </h3>
+
+            <div class="info-grid">
+
+                <div class="info-item">
+
+                    <strong>
+                        01 — Token Generation
+                    </strong>
+
+                    <p>
+                        A token is represented using
+                        randomly generated qubit values,
+                        measurement bases and trap positions.
+                    </p>
+
+                </div>
+
+
+                <div class="info-item">
+
+                    <strong>
+                        02 — Verification
+                    </strong>
+
+                    <p>
+                        Qiskit Aer is used to simulate
+                        quantum-circuit execution and
+                        trap verification.
+                    </p>
+
+                </div>
+
+
+                <div class="info-item">
+
+                    <strong>
+                        03 — Attack Simulation
+                    </strong>
+
+                    <p>
+                        A malicious disturbance can be
+                        introduced to demonstrate how
+                        trap errors can reveal tampering.
+                    </p>
+
+                </div>
+
+
+                <div class="info-item">
+
+                    <strong>
+                        04 — Token Recovery
+                    </strong>
+
+                    <p>
+                        An invalidated token can be replaced
+                        with a newly generated token.
+                    </p>
+
+                </div>
+
+            </div>
+
+        </section>
+
+
+        <section class="notice-card">
+
+            <strong>
+                Educational Demonstration
+            </strong>
+
+            <p>
+                This application models quantum-token
+                security concepts using simulation.
+                It is not a production banking system
+                or a physical quantum-money implementation.
+            </p>
+
+        </section>
+
+    </main>
+
+
+    <script>
+
+        const socket = io();
+
+
+        async function loadLogs() {
+
+            const container =
+                document.getElementById(
+                    "transactionLog"
+                );
+
+
+            try {
+
+                const response =
+                    await fetch(
+                        "/admin_logs"
+                    );
+
+
+                const data =
+                    await response.json();
+
+
+                document.getElementById(
+                    "transactionCount"
+                ).textContent =
+                    data.length;
+
+
+                if (!data.length) {
+
+                    container.innerHTML =
+                        "<p>No transactions recorded.</p>";
+
+                    return;
+
+                }
+
+
+                container.innerHTML =
+                    data
+                        .map(
+                            transaction => `
+                                <div class="transaction-item">
+
+                                    <div>
+
+                                        <strong>
+                                            ${escapeHtml(
+                                                transaction.from
+                                            )}
+                                        </strong>
+
+                                        <span>
+                                            →
+                                        </span>
+
+                                        <strong>
+                                            ${escapeHtml(
+                                                transaction.to
+                                            )}
+                                        </strong>
+
+                                        <small>
+                                            ${escapeHtml(
+                                                transaction.created_at
+                                            )}
+                                        </small>
+
+                                    </div>
+
+                                    <strong>
+                                        ₹${Number(
+                                            transaction.amount
+                                        ).toLocaleString(
+                                            "en-IN"
+                                        )}
+                                    </strong>
+
+                                </div>
+                            `
+                        )
+                        .join("");
+
+            } catch (error) {
+
+                container.textContent =
+                    "Unable to load transaction logs.";
+
+            }
+
+        }
+
+
+        async function collapseToken() {
+
+            const upi =
+                document
+                    .getElementById(
+                        "targetUpi"
+                    )
+                    .value
+                    .trim();
+
+
+            const result =
+                document.getElementById(
+                    "securityResult"
+                );
+
+
+            if (!upi) {
+
+                result.textContent =
+                    "Enter a target UPI first.";
+
+                return;
+
+            }
+
+
+            result.textContent =
+                "Simulating token collapse...";
+
+
+            try {
+
+                const response =
+                    await fetch(
+                        "/admin_spy",
+                        {
+                            method: "POST",
+
+                            headers: {
+                                "Content-Type":
+                                    "application/json"
+                            },
+
+                            body: JSON.stringify({
+                                upi: upi
+                            })
+                        }
+                    );
+
+
+                const data =
+                    await response.json();
+
+
+                result.textContent =
+                    JSON.stringify(
+                        data,
+                        null,
+                        2
+                    );
+
+            } catch (error) {
+
+                result.textContent =
+                    error.message;
+
+            }
+
+        }
+
+
+        async function verifyTarget() {
+
+            const upi =
+                document
+                    .getElementById(
+                        "targetUpi"
+                    )
+                    .value
+                    .trim();
+
+
+            const result =
+                document.getElementById(
+                    "securityResult"
+                );
+
+
+            if (!upi) {
+
+                result.textContent =
+                    "Enter a target UPI first.";
+
+                return;
+
+            }
+
+
+            result.textContent =
+                "Running token verification...";
+
+
+            try {
+
+                const response =
+                    await fetch(
+                        "/verify_token",
+                        {
+                            method: "POST",
+
+                            headers: {
+                                "Content-Type":
+                                    "application/json"
+                            },
+
+                            body: JSON.stringify({
+                                upi: upi,
+                                malicious: false
+                            })
+                        }
+                    );
+
+
+                const data =
+                    await response.json();
+
+
+                result.textContent =
+                    JSON.stringify(
+                        data,
+                        null,
+                        2
+                    );
+
+            } catch (error) {
+
+                result.textContent =
+                    error.message;
+
+            }
+
+        }
+
+
+        async function reissueToken() {
+
+            const upi =
+                document
+                    .getElementById(
+                        "targetUpi"
+                    )
+                    .value
+                    .trim();
+
+
+            const message =
+                document.getElementById(
+                    "reissueMessage"
+                );
+
+
+            if (!upi) {
+
+                message.textContent =
+                    "Enter a target UPI first.";
+
+                return;
+
+            }
+
+
+            message.textContent =
+                "Generating replacement token...";
+
+
+            try {
+
+                const response =
+                    await fetch(
+                        "/reissue_token",
+                        {
+                            method: "POST",
+
+                            headers: {
+                                "Content-Type":
+                                    "application/json"
+                            },
+
+                            body: JSON.stringify({
+                                upi: upi
+                            })
+                        }
+                    );
+
+
+                const data =
+                    await response.json();
+
+
+                if (!response.ok) {
+
+                    throw new Error(
+                        data.error ||
+                        "Token reissue failed."
+                    );
+
+                }
+
+
+                message.textContent =
+                    data.status ===
+                    "new_token_issued"
+
+                        ? "Replacement token issued successfully."
+
+                        : "Token is still valid.";
+
+            } catch (error) {
+
+                message.textContent =
+                    error.message;
+
+            }
+
+        }
+
+
+        function escapeHtml(
+            value
+        ) {
+
+            return String(value)
+                .replaceAll("&", "&amp;")
+                .replaceAll("<", "&lt;")
+                .replaceAll(">", "&gt;")
+                .replaceAll('"', "&quot;")
+                .replaceAll("'", "&#039;");
+
+        }
+
+
+        socket.on(
+            "tx",
+            function() {
+                loadLogs();
+            }
+        );
+
+
+        socket.on(
+            "collapse_token",
+            function() {
+                loadLogs();
+            }
+        );
+
+
+        socket.on(
+            "new_token",
+            function() {
+                loadLogs();
+            }
+        );
+
+
+        loadLogs();
+
+    </script>
+
+</body>
+</html>

@@ -1,0 +1,170 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta
+        name="viewport"
+        content="width=device-width, initial-scale=1.0"
+    >
+
+    <title>QuantumBank Security</title>
+
+    <link
+        rel="stylesheet"
+        href="{{ url_for('static', filename='style.css') }}"
+    >
+</head>
+
+<body>
+
+    <main class="auth-container">
+
+        <section class="auth-card">
+
+            <div class="brand">
+                <div class="brand-icon">Q</div>
+
+                <div>
+                    <h1>QuantumBank</h1>
+                    <p>Quantum Token Security</p>
+                </div>
+            </div>
+
+            <div class="auth-content">
+
+                <h2>Secure Banking</h2>
+
+                <p class="subtitle">
+                    Enter your UPI identifier to access
+                    your QuantumBank wallet.
+                </p>
+
+                <form id="loginForm">
+
+                    <label for="upi">
+                        UPI Identifier
+                    </label>
+
+                    <input
+                        type="text"
+                        id="upi"
+                        name="upi"
+                        placeholder="example@upi"
+                        autocomplete="off"
+                        required
+                    >
+
+                    <button
+                        type="submit"
+                        class="primary-button"
+                    >
+                        Access Wallet
+                    </button>
+
+                </form>
+
+                <p
+                    id="message"
+                    class="message"
+                ></p>
+
+            </div>
+
+            <div class="security-note">
+
+                <span>🔐</span>
+
+                <span>
+                    Protected by quantum token
+                    verification
+                </span>
+
+            </div>
+
+        </section>
+
+    </main>
+
+
+    <script>
+
+        const form =
+            document.getElementById("loginForm");
+
+        const message =
+            document.getElementById("message");
+
+
+        form.addEventListener(
+            "submit",
+            async function(event) {
+
+                event.preventDefault();
+
+                const upi =
+                    document
+                        .getElementById("upi")
+                        .value
+                        .trim();
+
+                if (!upi) {
+                    message.textContent =
+                        "Please enter your UPI identifier.";
+
+                    return;
+                }
+
+                message.textContent =
+                    "Creating secure wallet...";
+
+                try {
+
+                    const response =
+                        await fetch(
+                            "/login",
+                            {
+                                method: "POST",
+
+                                headers: {
+                                    "Content-Type":
+                                        "application/json"
+                                },
+
+                                body: JSON.stringify({
+                                    upi: upi
+                                })
+                            }
+                        );
+
+                    const data =
+                        await response.json();
+
+                    if (!response.ok) {
+                        throw new Error(
+                            data.error ||
+                            "Login failed."
+                        );
+                    }
+
+                    sessionStorage.setItem(
+                        "upi",
+                        upi
+                    );
+
+                    window.location.href =
+                        "/dashboard";
+
+                } catch (error) {
+
+                    message.textContent =
+                        error.message;
+
+                }
+
+            }
+        );
+
+    </script>
+
+</body>
+</html>
